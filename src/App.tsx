@@ -12,7 +12,7 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import OutlinedInput from '@mui/material/OutlinedInput';
-import { CameraState, useCamera, Tile } from './useCamera'
+import { CameraState, useCamera, TileCoord, BoundingBox } from './useCamera'
 
 
 interface KeyContextState {
@@ -53,12 +53,13 @@ function App() {
 
   const draw = (
     canvasRef: React.RefObject<HTMLCanvasElement>,
-    tile: Tile
+    tileCoords: TileCoord,
+    boundingBox: BoundingBox
   ) => {
     // Unpack Refs
     const { ctx } = unpackCanvasCtx(canvasRef)
-    const { i, j } = tile.coords
-    const bounds = tile.boundingBox
+    const { i, j } = tileCoords
+    const { x, y, height, width } = boundingBox
 
     /*
       TODO -- Create SVGs of...
@@ -75,7 +76,7 @@ function App() {
 
     const circlePosition = { x: 200, y: 200 }
     ctx.fillStyle = `rgb(${(i*20)%80+160}, ${(j*20)%80+160}, ${(i*j*10)%80+160})`
-    ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
+    ctx.fillRect(x, y, width, height)
     ctx.beginPath();
 //    ctx.arc(circlePosition.x - bounds.x, circlePosition.y - bounds.y, 50, 0, 2 * Math.PI);
     ctx.font = '30px serif';
@@ -83,7 +84,7 @@ function App() {
     // Printing at x, y prints in the tile ABOVE yours, as text populates in canvas
     //   with the typographic baseline at y
     ctx.fillStyle = 'white'
-    ctx.fillText(`(${i}, ${j})`, bounds.x+bounds.width/2, bounds.y+bounds.height/2);
+    ctx.fillText(`(${i}, ${j})`, x+width/2, y+height/2);
     ctx.stroke();
 
   }
@@ -141,7 +142,6 @@ function App() {
       )
   )
 
-  console.log(harmonicOverlap)
 
 
   return (

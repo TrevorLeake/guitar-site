@@ -20,7 +20,8 @@ export type TileCoord = {
 }
 
 export type Tile = {
-  boundingBox: BoundingBox
+  width: number
+  height: number
   coords: TileCoord
 }
 
@@ -40,32 +41,28 @@ export type TileCoordRange = {
   bottom: number
 }
 
-const tileCoordsInView = (boundingBox: BoundingBox, x: number, y: number, width: number, height: number): TileCoordRange => {
+const tileCoordsInView = (tileSize: TileSize, cameraState: CameraState): TileCoordRange => {
   // View bounds in tile coordinates
+  const { x, y, width: cameraWidth, height: cameraHeight } = cameraState
+  const { width: tileWidth, height: tileHeight } = tileSize
   return {
-    left: Math.floor(x / boundingBox.width),
-    right: Math.ceil((x+width) / boundingBox.width),
-    top: Math.floor(y / boundingBox.height),
-    bottom: Math.ceil((y+height) / boundingBox.height)
+    left: Math.floor(x / tileWidth),
+    right: Math.ceil((x + cameraWidth) / tileWidth),
+    top: Math.floor(y / tileHeight),
+    bottom: Math.ceil((y + cameraHeight) / tileHeight)
   }
 }
 
 
-const createTiles = (tilesInView: TileCoordRange, boundingBox: BoundingBox): Tile[] => {
+const createTiles = (tilesInView: TileCoordRange, tileSize: TileSize): Tile[] => {
   const tiles: Tile[] = []
-  const {left, right, top, bottom} = tilesInView
-  const { width, height } = boundingBox
+  const { left, right, top, bottom } = tilesInView
 
   for(let i = left; i <= right; ++i) {
     for(let j = top; j <= bottom; ++j) {
       tiles.push({
-        boundingBox: {
-          x: (i * width) - boundingBox.x,
-          y: (j * height) - boundingBox.y,
-          width: width,
-          height: height
-        },
-        coords: { i, j }
+        coords: { i, j },
+        ...tileSize
       })
     }
   }
@@ -74,6 +71,10 @@ const createTiles = (tilesInView: TileCoordRange, boundingBox: BoundingBox): Til
 }
 
 
+export type TileSize = {
+  width: number
+  height: number
+}
 
 export type CameraState = {
   x: number,
@@ -87,7 +88,8 @@ const useCamera = (
   canvasRef: React.RefObject<HTMLCanvasElement>,
   draw: (
     canvasRef: React.RefObject<HTMLCanvasElement>,
-    tile: Tile
+    tileCoords: TileCoord,
+    boundingBox: BoundingBox
   ) => void,
   initialState: CameraState,
   minZoom: number = 0.1,
@@ -111,9 +113,7 @@ const useCamera = (
 
   // TILES
   const tileSide = 300
-  const tileBoundingBox: BoundingBox = {
-    x: cameraStateRef.current.x || 0,
-    y: cameraStateRef.current.y || 0,
+  const tileSize: TileSize = {
     width: tileSide,
     height: tileSide
   }
@@ -121,19 +121,17 @@ const useCamera = (
   // CREATE TILES IF DIRTY (camera moved)
   useEffect(() => {
     setCameraMoved(false)
-    const { x, y, width, height } = cameraStateRef.current
 
+    // TODO -- memoize
     // TODO -- Detect dirty states on camera better, memoize, and shadow update? Method for updating when ref changes?
     //  createTilesIfDirty as Callback?
     // Tiles dirty? Naive solution
-//    debugger
-    const newTilesInView: TileCoordRange = tileCoordsInView(tileBoundingBox, x, y, width, height)
-    console.log({ newTilesInView, tilesInView })
+    const newTilesInView: TileCoordRange = tileCoordsInView(tileSize, cameraStateRef.current)
     if(isEqual(newTilesInView, tilesInView)) {
       return
     }
 
-    const tiles: Tile[] = createTiles(newTilesInView, tileBoundingBox)
+    const tiles: Tile[] = createTiles(newTilesInView, tileSize)
 
     // Check if updated
     let tilesMatch: boolean = false
@@ -148,7 +146,6 @@ const useCamera = (
     if(tilesMatch)
       return
 
-    console.log('TILES', drawTiles.map(tile => tile.coords))
     setTilesInView(newTilesInView)
     setDrawTiles(tiles)
   }, [cameraMoved])
@@ -159,13 +156,22 @@ const useCamera = (
 
   // Call
   const drawWrapper = async () => {
+
     const { ctx } = unpackCanvasCtx(canvasRef)
+    const { x: cameraX, y: cameraY } = cameraStateRef.current
 
     drawTiles.forEach((tile) => {
-      const bounds: BoundingBox = tile.boundingBox
-      const { x, y, width, height } = bounds
-      ctx.clearRect(x, y, width, height)
-      draw(canvasRef, tile)
+      const { i, j } = tile.coords
+      const xOffset = i * tile.width
+      const yOffset = j * tile.height
+      const boundingBox = {
+        x: -cameraX + xOffset,
+        y: -cameraY + yOffset,
+        width: tile.width,
+        height: tile.height
+      }
+      ctx.clearRect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height)
+      draw(canvasRef, tile.coords, boundingBox)
     })
   }
   useAnimationFrame(drawWrapper, [tilesInView])
