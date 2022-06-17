@@ -9,7 +9,6 @@
     "@mui/material": "^5.8.1",
     "@reduxjs/toolkit": "^1.8.2",
     "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^14.2.0",
     "@tonaljs/tonal": "^4.6.5",
     "@types/jest": "^27.5.1",
@@ -21,6 +20,7 @@
     "react-dom": "^18.1.0",
     "react-redux": "^8.0.2",
     "react-scripts": "5.0.1",
+    "react-virtualized": "^9.22.3",
     "tonal-chord": "^2.2.2",
     "tonal-distance": "^2.2.2",
     "tonal-pcset": "^2.2.2",
@@ -52,6 +52,8 @@
     ]
   },
   "devDependencies": {
+    "@testing-library/react": "^13.3.0",
+    "@testing-library/react-hooks": "^8.0.0",
     "@types/lodash": "^4.14.182"
   }
 }

@@ -13,27 +13,28 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import { CameraState, useCamera, TileCoord, BoundingBox } from './useCamera'
-
+import VirtualizedFretboard from './VirtualizedFretBoard'
 
 interface KeyContextState {
-    key: string[]
+  key: string[]
 }
 
 class TonalContext {
-    key;
+  key;
 
-    constructor(key: string[]) {
-        this.key = key
-    }
+  constructor(key: string[]) {
+    this.key = key
+  }
 
-    notesToDegrees(notes: string[]) {
-        return notes.map((note, i) => this.key.indexOf(note) + 1)
-    }
+  notesToDegrees(notes: string[]) {
+    return notes.map((note, i) => this.key.indexOf(note) + 1)
+  }
 
-    degreesToNotes(degrees: number[]) {
-        return degrees.map((degree, i) => this.key[degree-1])
-    }
+  degreesToNotes(degrees: number[]) {
+    return degrees.map((degree, i) => this.key[degree-1])
+  }
 }
+
 
 
 
@@ -49,7 +50,7 @@ type RealTone = {
 function App() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const initialCameraState: CameraState = { x: 0, y: 0, width: 800, height: 500}
+  const initialCameraState: CameraState = { x:0, y:0, width: 800, height: 500}
 
   const draw = (
     canvasRef: React.RefObject<HTMLCanvasElement>,
@@ -88,8 +89,8 @@ function App() {
     ctx.stroke();
 
   }
+  const { cameraStateRef } = useCamera(canvasRef, draw, initialCameraState)
 
-  useCamera(canvasRef, draw, initialCameraState)
 
   // TODO -- Create placeholder component based on audiofile status
 
@@ -143,12 +144,11 @@ function App() {
   )
 
 
-
   return (
     <div className="App">
 
+      {/*      <VirtualizedFretboard />*/}
       <canvas ref={canvasRef} {...dimensions} />
-
                 <FormControl fullWidth>
                     <InputLabel id="demo-simple-select-label">Chord</InputLabel>
                     <Select
