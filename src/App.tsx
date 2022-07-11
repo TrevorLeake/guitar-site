@@ -14,6 +14,8 @@ import Select from '@mui/material/Select';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import { CameraState, useCamera, TileCoord, BoundingBox } from './useCamera'
 import VirtualizedFretboard from './VirtualizedFretBoard'
+import { Grid } from 'react-virtualized'
+
 
 interface KeyContextState {
   key: string[]
@@ -50,7 +52,7 @@ type RealTone = {
 function App() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const initialCameraState: CameraState = { x:0, y:0, width: 800, height: 500}
+  const initialCameraState: CameraState = { x: 0, y: 0, width: 800, height: 500}
 
   const draw = (
     canvasRef: React.RefObject<HTMLCanvasElement>,
@@ -143,11 +145,42 @@ function App() {
       )
   )
 
+  // Grid data as an array of arrays
+  const list = [
+    ['Brian Vaughn', 'Software Engineer', 'San Jose', 'CA', 95125 /* ... */],
+    // And so on...
+  ];
+
+  type CellRendererArguments = {
+    columnIndex: number
+    rowIndex: number
+    key: any
+    style: any
+  }
+
+  function cellRenderer({ columnIndex, key, rowIndex, style }: CellRendererArguments) {
+    return (
+      <div key={key} style={style}>
+        {list[rowIndex][columnIndex]}
+      </div>
+    );
+  }
 
   return (
     <div className="App">
 
+      <Grid
+        cellRenderer={cellRenderer}
+        columnCount={list[0].length}
+        columnWidth={100}
+        height={300}
+        rowCount={list.length}
+        rowHeight={30}
+        width={300}
+      />
+
       {/*      <VirtualizedFretboard />*/}
+
       <canvas ref={canvasRef} {...dimensions} />
                 <FormControl fullWidth>
                     <InputLabel id="demo-simple-select-label">Chord</InputLabel>

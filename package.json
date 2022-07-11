@@ -53,7 +53,7 @@
   },
   "devDependencies": {
     "@testing-library/react": "^13.3.0",
-    "@testing-library/react-hooks": "^8.0.0",
-    "@types/lodash": "^4.14.182"
+    "@types/lodash": "^4.14.182",
+    "@types/react-virtualized": "^9.21.21"
   }
 }
